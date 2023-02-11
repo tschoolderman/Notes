@@ -67,9 +67,6 @@ $ alias alias_name = 'activator && clean && compile && run'
 
 ## Options for cmdlets
 ---
-| Options | Description |
-| :-----: | ----------- |
-
 |  Abbreviation  |        Name         | Effect                                                                                                                                                   |
 | :------------: | :-----------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 |       -B       |   brace expansion   | Enable brace expansion (default setting = on)                                                                                                            |
