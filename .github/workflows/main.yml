@@ -1,0 +1,20 @@
+name: Latest update
+
+on:
+  push:
+    branches: 
+      - main
+
+jobs:
+  get-date:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set the date
+        id: step_one
+        run: |
+          echo "$(date +"%Y+%m+%d")" >> $GITHUB_ENV
+          
+      - name: Use the date
+        id: step_two
+        run: |
+          echo "${{ env.action_state }}" # This will output the date
