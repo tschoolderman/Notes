@@ -32,6 +32,7 @@ From **highest** to **lowest** precedence:
 |     *     | Multiplication    | 3 * 3 = 9     |
 |     -     | Subtraction       | 5 - 2 = 3     |
 |     +     | Addition          | 2 + 2 = 4     |
+
 &nbsp;
 
 ## Comprehensions  
