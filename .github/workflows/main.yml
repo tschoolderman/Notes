@@ -8,13 +8,15 @@ on:
 jobs:
   get-date:
     runs-on: ubuntu-20.04
+    outputs:
+      output1: ${{ steps.step_one.outputs.date }}
     steps:
       - name: Set the date
         id: step_one
         run: |
-          echo "date = $(date +"%Y+%m+%d")" >> $GITHUB_ENV
+          echo "date = $(date +"%Y+%m+%d")" >> $GITHUB_OUTPUT
           
       - name: Use the date
         id: step_two
         run: |
-          echo "${{ env.date }}"
+          echo "${{ outputs.output1 }}"
