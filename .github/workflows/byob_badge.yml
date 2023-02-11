@@ -18,4 +18,4 @@ jobs:
           ICON: 'git'
           LABEL: 'Updated at'
           STATUS: ${{ steps.date.outputs.data }}
-          COLOR: AF38EB
+          COLOR: 00EEFF
