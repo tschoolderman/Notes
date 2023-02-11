@@ -32,4 +32,4 @@ jobs:
           LABEL: 'Updated at'
           STATUS: ${{ steps.date.outputs.data }}
           COLOR: 00EEFF
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.NOTES_TOKEN }}
