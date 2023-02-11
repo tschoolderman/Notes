@@ -1,4 +1,5 @@
-# These are notes on the journey of learning to program <!-- omit from toc -->  
+![Badge](https://img.shields.io/badge/Last%20updated-2023--02--11-blueviolet)
+# Notes on the journey of learning to program <!-- omit from toc -->  
 
 General info on all kinds of API's: [devdocs.io](https://devdocs.io/)  
 &nbsp;
