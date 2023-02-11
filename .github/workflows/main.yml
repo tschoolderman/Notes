@@ -16,7 +16,7 @@ jobs:
         run: |
           echo "date = $(date +"%Y+%m+%d")" >> $GITHUB_OUTPUT
           
-      - name: Use the date
-        id: step_two
-        run: |
-          echo "${{ outputs.output1 }}"
+#       - name: Use the date
+#         id: step_two
+#         run: |
+#           echo "${{ env.date }}"
