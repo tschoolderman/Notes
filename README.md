@@ -1,6 +1,7 @@
 ![Badge](https://github.com/tschoolderman/Notes/actions/workflows/main.yml/badge.svg) Badge from Github Actions  
 ![Badge](https://img.shields.io/badge/Last%20updated-2023--02--11-blueviolet) Static badge manual  
 ![Badge](https://img.shields.io/github/last-commit/tschoolderman/Notes/main) Badge automatic?  
+![test](https://byob.yarr.is/tschoolderman/Notes/actions/workflows/byob_badge)
 # Notes on the journey of learning to program <!-- omit from toc -->  
 
 General info on all kinds of API's: [devdocs.io](https://devdocs.io/)  
