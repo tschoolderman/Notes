@@ -7,8 +7,7 @@ on:
 
 jobs:
   get-date:
-    runs-on: ubuntu-latest
-    
+    runs-on: ubuntu-20.04
     steps:
       - name: Set the date
         id: step_one
@@ -18,4 +17,4 @@ jobs:
       - name: Use the date
         id: step_two
         run: |
-          echo date
+          echo "${{ env.date }}"
