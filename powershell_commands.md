@@ -38,6 +38,7 @@
 | Wait-Job          |              wjb              | Suppresses the command prompt until one or all of the Windows PowerShell background jobs running in the session are … |
 | Where-Object      |           ?, where            | Selects objects from a collection based on their property values.                                                     |
 | Write-Output      |          echo, write          | Sends the specified objects to the next command in the pipeline. If the command is the last command in the pipeline,… |
+| Open in VSCode    |code \<file-path\>|Opens project in VSCode window|
 
 ## Common aliases
 ---
