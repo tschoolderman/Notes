@@ -35,7 +35,7 @@ $ py -m venv venv --prompt AoC
 Using `pip` for environments and general use.  
 Installing dependencies from `requirements.txt`.  
 ```powershell
-$ pip install requirements.txt
+$ pip install -r requirements.txt
 ```  
 
 Using `pip` to create a `requirements.txt` file.  
