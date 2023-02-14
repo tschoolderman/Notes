@@ -1,5 +1,9 @@
 # Bash commands <!-- omit from toc -->  
 A short guide to Bash commands, tips, tricks and other helpful information.  
+[Bash scripting cheatsheet](https://devhints.io/bash)  
+[GFG Bash guide](https://www.geeksforgeeks.org/bash-scripting-introduction-to-bash-and-bash-scripting/amp/)  
+[File and File permissions](https://www.javatpoint.com/bash-filesystem-and-file-permissions)  
+[Bash script examples](https://www.hostinger.com/tutorials/bash-script-example)  
 
 &nbsp;
 ## Contents <!-- omit from toc -->
