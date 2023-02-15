@@ -1,4 +1,5 @@
 # Powershell commands <!-- omit from toc -->  
+[Powershell docs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/?view=powershell-7.3)  
 
 ## Contents <!-- omit from toc -->
 ---
@@ -41,6 +42,7 @@
 | Write-Output      |          echo, write          | Sends the specified objects to the next command in the pipeline. If the command is the last command in the pipeline,… |
 | Open in VSCode    |code \<file-path\>|Opens project in VSCode window|
 
+&nbsp;
 ## Common aliases
 ---
 |     Command     | Description      |
@@ -63,6 +65,7 @@
 |  cd, chdir, sl  | Set-Location     |
 |   cls, clear    | Clear-Host       |
 
+&nbsp;
 ## Basic commands
 ---
 |    Command    | Description                                   |
@@ -79,6 +82,7 @@
 |      F7       | Command history in a window                   |
 | Tab/Shift+Tab | Command line completion                       |
 
+&nbsp;
 ## Import, Export, Convert
 ---
 |    Command    |     Command     |
@@ -88,6 +92,7 @@
 |  Export-CSV   |   Import-CSV    |
 | ConvertTo-CSV | ConvertFrom-CSV |
 
+&nbsp;
 ## Flow Control
 ---
 | Command                                                       |
@@ -97,6 +102,7 @@
 | For($i=0; $i-It 10; $i++)[]                                   |
 | Foreach(\$file in dir C:\\)[\$file.name]1..10 \| foreach[\$_] |
 
+&nbsp;
 ## Comments, Escape characters
 ---
 |   Command   | Description       |
