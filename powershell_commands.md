@@ -7,7 +7,8 @@
 - [Basic commands](#basic-commands)
 - [Import, Export, Convert](#import-export-convert)
 - [Flow Control](#flow-control)
-- [Comments, Escape characters](#comments-escape-characters)
+- [Comments, Escape characters](#comments-escape-characters)  
+- [Tips](#tips)  
 
 ## Common cmdlets
 ---
@@ -107,3 +108,10 @@
 |     `n      | New line          |
 |      `      | Line continue     |
 
+&nbsp;
+## Tips  
+---
+To create multiple items in a single line use a comma:
+```powershell
+$ni test1.txt, test2.txt, new.py
+```  
