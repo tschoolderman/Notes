@@ -30,6 +30,10 @@ $ py -m venv venv --prompt AoC
 ```  
 
 &nbsp;
+## Activating venv  
+`PS> venv\Scripts\activate`
+
+&nbsp;
 ## pip  
 ---
 Using `pip` for environments and general use.  
