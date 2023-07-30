@@ -17,6 +17,7 @@
   - [Configuring nginx](#configuring-nginx)
   - [Configuring the firewall](#configuring-the-firewall)
   - [Creating a pipeline with Github actions](#creating-a-pipeline-with-github-actions)
+- [Configuring the DNS](#configuring-the-dns)
 
 ## Generating ssh-key on Windows 11  
 [Youtube ssh-keygen Win11](https://www.youtube.com/watch?v=qvmKLBKE2lM)  
@@ -202,3 +203,15 @@ On the VM make sure the script is set-up correct and the SSH user has rights to 
 A specific file execution right can be set in `/etc/sudoers.d/90-cloud-init-users`.  
 With a line such as: `<user> ALL=NOPASSWD: /bin/systemctl <action> <service>`.  
 *Note: please keep in mind that this can have security implications*  
+
+
+## Configuring the DNS  
+Buy a domain at "Google Domains" for example.  
+Follow the steps in this [tutorial](https://docs.digitalocean.com/tutorials/dns-registrars/).  
+*Note: don't forget to make the adjusted nameservers active*  
+Add the domain name to Digital Ocean's **networking** tab. [video1](https://www.youtube.com/watch?v=x7535H895o4) [video2](https://www.youtube.com/watch?v=d8TRPMI8lVk)  
+Enter the domain name and select the project folder. In the next window fill in "@" for the host and select the droplet(IP) and click "Create Record".  
+
+In your VM make sure the `server_name` of the Nginx config file is named the same as your domain.  
+Get a SSL certificate with "[certbot](https://certbot.eff.org/instructions?ws=nginx&os=ubuntufocal&tab=standard)" for example.  
+Follow the instructions on the site and in the video. [Tutorial](https://www.youtube.com/watch?v=ghZXFyIyK1o)  
