@@ -1,5 +1,47 @@
 # Dockercommands  
+[Tutorial Docker/Kubernetes](https://dockerdoc.carpago.nl/)
 
+
+&nbsp;
+## Contents 
+- [Dockercommands](#dockercommands)
+  - [Contents](#contents)
+- [Creating an image](#creating-an-image)
+  - [Build an image](#build-an-image)
+  - [Build a container](#build-a-container)
+- [Kubernetes training](#kubernetes-training)
+  - [Network objects](#network-objects)
+    - [Services](#services)
+  - [Services praktijk](#services-praktijk)
+    - [Ingress](#ingress)
+
+# Creating an image  
+Find your image on the Dockerhub and create an image of your program with it.  
+Example:  
+
+```Dockerfile
+FROM tiangolo/uwsgi-nginx:python3.11
+
+COPY ./requirements.txt /app/requirements.txt
+
+RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
+
+COPY . /app
+```  
+
+**FROM** defines the used Dockerhub image  
+**COPY** specifies where you want to copy from and to  
+**RUN** defines a specific command  
+
+## Build an image  
+`docker build -t portfolio .`
+This command tells Docker to build an image named (-t) "portfolio" from the current folder of your terminal.  
+
+## Build a container  
+`docker run -d -it --name portfolio_flask -p 888:80 portfiolo`  
+This command tells Docker to create a container detached (-d) so your console is not occupied by the container.  
+It runs interactive (-it) with a self specified name (--name) "portfolio_flask".  
+Container port is set to "888" and the outside port is set to "80", you can reach the container through port 80.  
 
 
 # Kubernetes training  
@@ -15,7 +57,7 @@ NodePort ::= Dat is dat ik een ClusterIP ben + een open poort naar buiten op ALL
         Dat poortnummer is 30000 tot 32767  (2^15-1)  
 
 LoadBalancer ::= Dat is een NodePort (dus ook een ClusterIP) die ervoor zorgt dat de commerciele provider zoals Azure jou een IP-address geeft 
-waarop jiu rechtstreeks het cluster kunt binnenkomen. Dat is overigens wel een betaalde Service.  
+waarop je rechtstreeks het cluster kunt binnenkomen. Dat is overigens wel een betaalde Service.  
 
 --
 ExternalName ::= Dat je een buiten-de-deur-van-je-bedrijf-zelfs een DNS name IN je cluster kunt registeren.  
