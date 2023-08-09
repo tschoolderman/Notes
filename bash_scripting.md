@@ -23,6 +23,9 @@
   - [Step 4: Quote removal](#step-4-quote-removal)
   - [Step 5: Redirection](#step-5-redirection)
   - [Quoting](#quoting)
+    - [Examples of how Bash handles commands](#examples-of-how-bash-handles-commands)
+- [Requesting user input](#requesting-user-input)
+  - [Positional parameters](#positional-parameters)
 
 # Bash Basics  
 ## General structure of a script  
@@ -228,12 +231,44 @@ This will create 1 file named '1 2 3 4 5'
 You can change the IFS command with: `IFS=","`, but this overwrites the default values  
 
 ### Globbing  
+Globbing is used as a shortcut for listing the files thhat a command should operate on.  
+Is only performed on words not operators.  
+Special pattern characters: `*`, `?`, `[`  
 
+`ls *` - means all files  
+`ls *.txt` - all the .txt files  
+`ls file*.txt` - file<anything>.txt  
+
+? = for 1 character and it *has* to be there, unlike the *  
+`ls file?.txt` - matches anything with file<char>.txt (specific in length)  
+`ls file???.txt` - matches anything with file<3chars>.txt  
+
+[] = only matches characters you put in it (exact match)  
+`ls file[ab].txt` - matches filea.txt and fileb.txt (occupies 1 character)  
+`ls file[abc][abc][abc].txt` - matches file<3chars>.txt (only a, b or c)  
+`ls file[a-g].txt` - match for a range  
+`ls file[0-9].txt` - same for numbers  
+*Note: Linux is case sensitive.*  
+*Note: globbing only works in CWD, but you can give the path in the command*  
 
 ## Step 4: Quote removal  
+There are 3 types of quotes: `\`, `'` and `"`  
+During quote removal, the shell removes all unquoted backslashes,  
+single and double quote characters that did not result from a shell expansion.  
 
 ## Step 5: Redirection  
+Data streams, each stream can only be connected to 1 place at a time:  
+Stream 0 = stdin, a way to provide input into a command  
+Stream 1 = stdout, contains data that is produced after succesful command execution  
+Stream 2 = stderr, contains all error messages and statuses  
 
+Example:  
+`cat < hello.txt` redirection stdin from file to stdout (terminal)  
+`echo "some output" > output.txt` redirection from stind to stdout(file)  
+`cd /root 2> error.txt` redirect stderr to a file, very specific for stderr  
+`cd /root &> /dev/null` redirects both stdout and stderr to "bin bucket" gets immediatly deleted  
+`>` overwrites the file  
+`>>` appends to the file  
 
 ## Quoting  
 Quoting methods: backslash, single quotes and double quotes.  
@@ -247,3 +282,74 @@ Escaping:
 `echo john \& jane`  
 `filepath=C:\\User\\user\\Documents` or `filepath='C:\User\user\Documents'`  
 `filepath="C:\User\$USER\Documents"`
+
+### Examples of how Bash handles commands  
+- Problem 1  
+`echo "The number $(( 5-2 ))" > number.txt`  
+`echo "The number 3" > number.txt`  
+`echo The number 3 > number.txt`  
+`echo The number 3` stdout -> number.txt  
+
+- Problem 2  
+`ls /etc | grep net > net.txt`  
+2 command and 1 redirection  
+`ls /etc` | `grep net` stdout -> net.txt  
+
+- Problem 3  
+```Bash
+#/bin/bash
+IFS=,
+folder=people
+name=john,jane,abhishek
+```  
+`mkdir $folder && cd $folder && touch $name`  
+3 commands  
+`mkdir people && cd people && touch john,jane,abhishek`  
+word splitting due to IFS=,  
+`mkdir people && cd people && touch john jane abhishek`  
+New dir, with 3 files named john, jane and abhisek  
+
+- Problem 4  
+`touch "Daily Report $(date +"%a %d %h %y")"`  
+`touch "Daily Report 10 Aug 2023"`  
+No further quote removal  
+
+# Requesting user input  
+## Positional parameters  
+The shell assigns numbers called positional parameters to  
+each command-line argument that is entered. ($1, $2, $3…)  
+
+A script.sh:  
+```Bash
+#!/bin/bash
+echo "My name is $1"
+echo "My home dir is $2"
+echo "My fav colour is $3"
+echo "The 10th argument is ${10}"
+```  
+Command: `script.sh john $HOME red 4 5 6 7 8 9 string`  
+Result:  
+My name is john  
+My home dir is /home/john  
+My fav colour is red  
+The 10th argument is string  
+
+Example:  
+```Bash
+#!/bin/bash
+
+# Author: John Doe
+# Created: 7th July 2020
+# Last Modified: 7th July 2020
+
+# Description:
+# Use positional arguments from 1 to 10 where the first argument is the operator
+# If no argument is given, the default will be 0
+
+# Usage:
+# argument_calc.sh
+
+echo "$(( ${2:-0} $1 ${3:-0} $1 ${4:-0} $1 ${5:-0} $1 ${6:-0} $1 ${7:-0} $1 ${8:-0} $1 ${9:-0} $1 ${10:-0} ))"
+```  
+${2:-0} = if the second arguments has no argument, it will default to 0  
+
