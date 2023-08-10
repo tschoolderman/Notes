@@ -26,6 +26,27 @@
     - [Examples of how Bash handles commands](#examples-of-how-bash-handles-commands)
 - [Requesting user input](#requesting-user-input)
   - [Positional parameters](#positional-parameters)
+  - [Special parameters](#special-parameters)
+  - [The read command](#the-read-command)
+  - [The select command](#the-select-command)
+- [Logic](#logic)
+  - [Lists and list operators](#lists-and-list-operators)
+  - [Test commands and conditional operators](#test-commands-and-conditional-operators)
+  - [If statements](#if-statements)
+    - [If statements - combining conditions](#if-statements---combining-conditions)
+    - [Case statements](#case-statements)
+- [Processing options and reading files](#processing-options-and-reading-files)
+  - [While loops](#while-loops)
+    - [Getopts](#getopts)
+      - [Option arguments](#option-arguments)
+  - [Read-while loops](#read-while-loops)
+- [Arrays and For loops](#arrays-and-for-loops)
+  - [Indexed array](#indexed-array)
+  - [Expaning an array](#expaning-an-array)
+  - [Modifying an array](#modifying-an-array)
+  - [The readarray command](#the-readarray-command)
+  - [For loops](#for-loops)
+- [Debugging scripts](#debugging-scripts)
 
 # Bash Basics  
 ## General structure of a script  
@@ -229,6 +250,7 @@ touch "$numbers"
 This will create 1 file named '1 2 3 4 5'  
 
 You can change the IFS command with: `IFS=","`, but this overwrites the default values  
+Except when used inside a script. If changed inside a script it will only affect the script.  
 
 ### Globbing  
 Globbing is used as a shortcut for listing the files thhat a command should operate on.  
@@ -351,5 +373,443 @@ Example:
 
 echo "$(( ${2:-0} $1 ${3:-0} $1 ${4:-0} $1 ${5:-0} $1 ${6:-0} $1 ${7:-0} $1 ${8:-0} $1 ${9:-0} $1 ${10:-0} ))"
 ```  
-${2:-0} = if the second arguments has no argument, it will default to 0  
+\${2:-0} = if the second arguments has no argument, it will default to 0.  
 
+## Special parameters  
+[Special parameters](https://www.gnu.org/software/bash/manual/bash.html#Special-Parameters) are like regular parameters,  
+but are created for us by the shell, and are unmodifiable.  
+Value of a special parameter is calculated for us based on our current script.  
+When i doubt, quote it out.  
+
+| Param   | Description                                                                                                 | Command line                      | Param value for commandline |
+| ------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------- | --------------------------- |
+| \$\#    | Stores the number of command line arguments provided to the script                                          | example.sh 1 2 3                  | 3                           |
+| \$0     | Stores the scripts name                                                                                     | test.sh 1 2 3                     | test.sh                     |
+| \$@     | Expands to each pos. param. as its own word with subsequent wordsplitting                                   | example.sh "daily reports"        | daily reports (2 words)     |
+| \"\$@\" | Same as the other, but without wordsplitting                                                                | example.sh "daily reports"        | daily reports (1 words)     |
+| \$*     | Exactly the same as \$@                                                                                     |                                   |                             |
+| \"\$*\" | Expands to all pos. param. as one word separated by the first letter of the IFS var, without word splitting | IFS=,  example.sh "daily reports" | daily,reports (1 word)      |
+| \$?     | Gives the exit code returned by the most recent command                                                     | echo "hello"                      | echo \$?                    | 0 |
+
+A script with `echo $@`:  
+`./script.sh 1 2 3 4 5 6` -> `1 2 3 4 5 6`  
+`./script.sh "daily feedback" "monthly report"` -> `daily feedback monthly report`  
+
+A script with `echo "$@"`:  
+`./script.sh "daily feedback" "monthly report"` -> `'daily feedback' 'monthly report'`  
+
+A script with `echo "$*"`: (can change how values are separated for e.g.: csv)  
+`./script.sh 1 2 3 4 5 6` -> `1,2,3,4,5,6`  
+
+## The read command  
+User input is stored in the `$REPLY` command which can be used in a script.  
+`read input1 input2` to store multiply values  
+`echo $input1 $input2`  
+
+Example:  
+```Bash
+#!/bin/bash
+
+read -t 5 -p "Input your name: " name
+read -t 5 -p "Input your age: " age
+read -t 5 -p "Input your city: " city
+echo "My name is $name"
+echo "My age is $age"
+echo "I live in $city"
+```  
+-p = show a prompt to the screen  
+-t = set a timer in seconds for the script to continue running if no input is given  
+-s = to prevent input from showing to the terminal  
+
+
+## The select command  
+User input is stored in the $RESPONSE command, but can be given custom variable names.  
+Just like the read command.  
+
+Basic syntax:  
+```Bash
+#!/bin/bash
+PS3="What day of the week is it? "
+select day in mon tue wed thu fri sat sun;
+do
+echo "The day of the week is $day"
+break
+done
+```
+This is a select list for day in the list provided.  
+Without the break command the loop will not end and the user has to manually end the loop.  
+
+PS3 (prompt string for select command)  
+You can change the string to ask a question for the input.  
+
+# Logic  
+## Lists and list operators  
+Use `;`, `&`, `&&`, `||` to create chained lists of commands.  
+In Bash a list is when you put one or more commands on a given line.  
+
+| Operator | Example                | Meaning                                                                                                                           |
+| -------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| &        | command1 & command2    | Sends command1 into a subshell to run “asynchronously” in the background, and continues to process command2 in the current shell. |
+| ;        | command1 ; command2    | Runs command1 and command2, i.e. one after the other. The shell will wait for command1 to complete before starting command2.      |
+| &&       | command1 && command2   | The “and” operator. The shell will only run command2 if command1 is successful (i.e. returns an exit code of 0).                  |
+| \|\|     | command1 \|\| command2 | The “or” operator. The shell will only run command2 if command1 is unsuccessful (i.e. returns a non-zero exit code).              |
+
+## Test commands and conditional operators  
+A test command is: “a command that can be used in bash to compare different pieces of information”.  
+Syntax: [ expression ]  
+The spaces within the square brackets is important for the syntax.  
+
+| OPERATOR | EXAMPLE              | MEANING                                                                                      |
+| -------- | -------------------- | -------------------------------------------------------------------------------------------- |
+| -eq      | [ 2 -eq 2 ]          | Successful if the two numbers are equal                                                      |
+| -ne      | [ 2 -ne 2 ]          | Successful if the two numbers are not equal                                                  |
+| =        | [ $a = $b ]          | Successful if the two strings are equal                                                      |
+| !=       | [ $a != $b ]         | Successful if the two strings are not equal                                                  |
+| -z       | [ -z $c ]            | Successful if a string is empty                                                              |
+| -n       | [ -n $c ]            | Successful if a string is not empty                                                          |
+| -e       | [ -e /path/to/file ] | Successful if a file system entry /path/to/file exists                                       |
+| -f       | [ -f /path/to/file ] | Successful if a file system entry /path/to/file exists and is a regular file                 |
+| -d       | [ -d /path/to/file ] | Successful if a file system entry /path/to/file exists and is a directory                    |
+| -x       | [ -x /path/to/file ] | Successful if a file system entry /path/to/file exists and is executable by the current user |
+
+## If statements  
+Start and stop with `if` and `fi`.  
+Check the exit status of a command and only runs the command if a certain condition is true.  
+
+```Bash
+if test1; then
+Commands... # only run if test1 passes
+elif test2; then
+Commands... # only run if test1 fails and test2 passes
+elif testN; then
+Commands... # only run if all previous tests fail, but testN passes
+else
+Commands... # only run if all tests fail
+fi
+```  
+
+Example script:  
+```Bash
+#!/bin/bash
+read -p "Please enter a number" number
+if [ $number -gt 0 ]; then
+    echo "Your number is greater than 0"
+elif [ $number -lt 0 ]; then
+    echo "Your number is less than 0"
+else
+    echo "Your number is 0!"
+fi
+```  
+
+### If statements - combining conditions  
+It is possible to chain together multiple test commands using list operators to create more powerful conditions.  
+
+Examples:  
+```Bash
+#!/bin/bash
+a=$(cat file1.txt) # "a" equals contents of file1.txt
+b=$(cat file2.txt) # "b" equals contents of file2.txt
+c=$(cat file3.txt) # "c" equals contents of file3.txt
+if [ "$a" = "$b" ] && [ "$a" = "$c" ]; then
+rm file2.txt file3.txt
+else
+echo "File1.txt did not match both files"
+fi
+```  
+```Bash
+#!/bin/bash
+a=$(cat file1.txt) # "a" equals contents of file1.txt
+b=$(cat file2.txt) # "b" equals contents of file2.txt
+c=$(cat file3.txt) # "c" equals contents of file3.txt
+if [ "$a" = "$b" ] || [ "$a" = "$c" ]; then
+rm file2.txt file3.txt
+else
+echo "File1.txt did not match either file"
+fi
+```  
+
+### Case statements  
+Case statements provide us with an elegant way to implement branching logic,  
+and are often more convenient than creating multiple “elif” statements.  
+
+The tradeoff, however, is that case statements can only work with 1 variable.  
+Case statements start and end using the reserved words “case” and “esac”.  
+
+Examples:  
+```Bash
+case "$variable" in # don't forget the $ and the double quotes!
+  pattern1)
+    Commands ...
+    ;;
+  pattern2)
+    Commands ...
+    ;;
+  patternN)
+    Commands ...
+    ;;
+*)
+  Commands ... # run these if no other pattern matches
+  ;;
+esac
+```  
+```Bash
+#!/bin/bash
+read -p "Please enter a number: " number
+case "$number" in
+    "") echo "You didn't enter anything!"
+    [0-9]) echo "you have entered a single digit number";;
+    [0-9][0-9]) echo "you have entered a two digit number";;
+    [0-9][0-9][0-9]) echo "you have entered a three digit number";;
+    *) echo "you have entered a number that is more than three digits";;
+esac
+```  
+
+# Processing options and reading files  
+## While loops  
+While loops run a set of commands *while* a certain condition is true, hence their name.  
+
+While loops will continue to run until either:  
+- The condition command that they’re provided with becomes false (i.e. returns a non-zero exit code).  
+- The loop is interrupted.  
+
+Syntax:  
+```Bash
+while condition; do
+  commands...
+done
+```  
+
+Example:  
+```Bash
+#!/bin/bash
+read -p "Enter your number: " num
+while [ "$num" -gt 10 ]; do
+  echo "$num"
+  num=$(( "$num" - 1 ))
+done
+```  
+
+### Getopts  
+Use `getopts` to process command line options.  
+The getopts command enables bash to get the the options provided to the script on the command line.  
+However, getopts does not get all the options at once;  
+it only gets the very next option on the command line each time it is run.  
+Therefore, the getopts command is often used as part of a while loop, to ensure that all command line options are processed.  
+
+Syntax: `getopts "optstring" variable`  
+Any single letter we place in the optstring is considered as its own option.  
+Getopts can only process one-letter options (long-form options such as --all are not supported.)  
+
+#### Option arguments  
+Sometimes, options can accept arguments of their own.  
+For example, let’s say we had the command:  
+`ourscript -A 10`
+
+In order to allow the -A option to accept an argument, such as “10”,  
+we would need to place a colon (:) after the letter “A” in the optstring, like so
+`getopts "A:b" variable`  
+
+Whatever argument that is provided with an option is stored in the `$OPTARG` shell variable.
+So, if we ran the command ourscript -A 10, the `$OPTARG`  
+variable would store the value of 10 when the getopts command processed the -A option.  
+
+The getopts command is often used in conjunction with a while loop so that we ensure that each option on the command line gets processed.  
+In order to allow the script to perform different actions based on the options that are provided,  
+we often also put a case statement inside the while loop, with one case for each option.  
+
+Basic syntax for the getopts command with while loop and case statement:  
+```Bash
+while getopts "A:b" variable; do
+    case "$variable" in
+        A) commands;;
+        b) commands;;
+        \?) commands;;
+    esac
+done
+```  
+
+When an unexpected option is provided to the getopts command, it stores a literal question mark inside the variable.  
+Therefore, it is good practice to create a `\?` case to respond to any invalid options.  
+The backslash ensures that the ? is interpreted literally, and not as a special globbing pattern character.  
+
+Example script:  
+```Bash
+#!/bin/bash
+while getopts "c:f:" opt; do
+    case "$opt" in
+        c) # convert from celsius to farenheit
+            result=$(echo "scale=2; ($OPTARG * (9 / 5)) + 32" | bc);;
+        f) # convert from fahrenheit to celsius
+            result=$(echo "scale=2; ($OPTARG - 32) * (5/9)" | bc);;
+        \?)
+            echo "Invalid option provided";;
+    esac
+    echo "$result"
+done
+```  
+
+Example of a timer script:  
+```Bash
+#!/bin/bash
+
+# Author
+# Date created
+# Last modified
+
+# Description
+
+# Usage
+
+total_seconds=""
+
+while getopts "m:s:" opt; do
+        case "$opt" in
+                m) total_seconds=$(( $total_seconds + $OPTARG * 60 )) ;;
+                s) total_seconds=$(( $total_seconds + $OPTARG )) ;;
+                \?) ;;
+        esac
+done
+
+while [ "$total_seconds" -gt 0 ]; do
+        echo "Seconds remaining: " $total_seconds
+        total_seconds=$(( $total_seconds - 1))
+        sleep 1s
+done
+
+echo "Time's up!"
+```
+
+## Read-while loops  
+Read-while loops are simply while loops that use the read command as their test command.  
+They are used to read lines of output one by one, and do something for each line.  
+A read-while loop can be used to iterate over the contents of files, or over the output of a command (or pipeline).  
+
+Basics:  
+```Bash
+while read line; do
+  commands...
+done < file
+```  
+```Bash
+#!/bin/bash
+while read line; do
+    echo "$line"
+done < file1.txt
+```  
+
+It is possible in Linux to iterate over a process like you would a file,  
+thus reading the output of the command.  
+
+This is achieved using a technique known as process substitution.  
+Process substitution simply allows us to treat the output of a command (or commands) as a file.  
+```Bash
+#!/bin/bash
+while read line; do
+    echo "$line"
+done < <(ls $HOME)
+```  
+```Bash
+while read line; do
+commands...
+done < <(command) # or <(cmd1 | cmd2 | ... | cmdN)
+```  
+
+# Arrays and For loops  
+## Indexed array  
+The most common type of array in Bash.  
+Syntax: `array=(element1 element2 element3 ... elementN)`  
+Example: `numbers=(1 2 3 4)`  
+
+## Expaning an array  
+| Expansion                                      | Description                                                                                                                                                                                             | Result    |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| ${array}                                       | Gives the first element of an array                                                                                                                                                                     | 1         |
+| ${array[@]}                                    | Expands to all the elements of an array                                                                                                                                                                 | 1 2 3 4 5 |
+| ${!array[@]}                                   | Expands to all the index numbers of all the elements of an array                                                                                                                                        | 0 1 2 3 4 |
+| ${array[@]:offset} E.g. ${array[@]:2}          | Starts at the index specified by offset rather than at index 0, and then continue until the end of array[@]. So, in this xample, we would start at index 2, which is the number 3.                      | 3 4 5     |
+| ${array[@]: -2}                                | We can also provide negative offsets. In this example, we will start two elements from the end, which is the number 4. Note: You must have a space after the “:” and before the “-”.                    | 4 5       |
+| ${array[@]:offset:length} E.g. ${array[@]:2:2} | Skips the first offset elements, and continues until the whole length of the array is length. So, in this example, we would skip the first 2 elements, and continue until we had a total of 2 elements. | 3 4       |
+| ${array[@]@Q}                                  | Views full elements of the array including `\n`                                                                                                                                                         |
+
+## Modifying an array  
+| Operation      | Description                                                                                                                                                                                     | Result                          |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| array+=(6)     | Appends 6 to the end of array                                                                                                                                                                   | array becomes (1 2 3 4 5 6)     |
+| array+=(a b c) | Appends (a b c) to the end of array                                                                                                                                                             | array becomes (1 2 3 4 5 a b c) |
+| unset array[2] | Removes the specified element from the array. In this example the element at index 2 will be removed Note: Index numbers do not update automatically, so this will create a gap in the indexes! | array becomes (1 2 4 5)         |
+| array[0]=100   | Changes the value of a specific element of the array. In this example the element with index 0 will become 100                                                                                  | array becomes (100 2 3 4 5)     |
+
+## The readarray command  
+The readarray command converts what it reads on its standard input stream into an array.  
+
+Create an array from file: `readarray -t arrayname < file`  
+Example: `readarray -t days < days.txt`  
+
+Creating an array from the output of a command:  
+Syntax: `readarray -t arrayname < <(command)`  
+Example: `readarray -t files < <(ls ~/Documents)`  
+
+**A NOTE ABOUT NEWLINE CHARACTERS**
+By default, when the readarray command reads a file (or process substitution),  
+it will save each entire line as a new array element,  
+including the invisible newline character at the end of the line.  
+Storing new lines characters can cause issues when it comes to formatting, so it is best to remove them.  
+Therefore, it is suggested that you always use the readarray command’s `-t` option unless you have a strong reason otherwise.  
+This will prevent any newline characters from being stored in your array values, and help prevent issues down the road.  
+
+## For loops  
+A for loop iterates over list of words or elements and performs a set of commands "for" each element.  
+
+Example without array:  
+```Bash
+for <variable> in value1 value2 value3; do
+    commands...
+done
+```  
+```Bash
+#!/bin/bash
+
+for element in first second third; do
+    echo "This is $element"
+done
+```  
+
+Example with array:  
+```Bash
+for element in "${array[@]}"; do
+    commands...
+done
+```  
+```Bash
+#!/bin/bash
+
+readarray -t files < file_list.txt
+
+for file in "${files[@]}"; do
+    if [ -f "$file" ]; then
+        echo "$file already exists"
+    else
+        touch "$file"
+        echo "$file was created"
+    fi
+done
+```  
+
+Example:  
+```Bash
+#!/bin/bash
+
+# Description
+# Gets the headers of the urls in the txt file
+# and puts it into the text files with the name between the 'www' and 'com'
+
+readarray -t file < urls.txt
+
+for url in "${file[@]}"; do
+        result=$(echo "$url" | cut -d '.' -f 2)
+        touch "$result"
+        curl --head "$url" > "$result".txt
+done
+```  
+
+# Debugging scripts  
