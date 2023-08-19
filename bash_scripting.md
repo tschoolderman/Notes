@@ -47,6 +47,19 @@
   - [The readarray command](#the-readarray-command)
   - [For loops](#for-loops)
 - [Debugging scripts](#debugging-scripts)
+  - [Shellcheck](#shellcheck)
+  - [Common errors](#common-errors)
+  - [Getting help](#getting-help)
+- [Scheduling and Automation](#scheduling-and-automation)
+  - [The "at" command](#the-at-command)
+    - [Limitations of at](#limitations-of-at)
+  - [Using Cron to schedule](#using-cron-to-schedule)
+    - [Limitations of cron](#limitations-of-cron)
+  - [Cron tips](#cron-tips)
+  - [Cron directories](#cron-directories)
+  - [Anacron](#anacron)
+    - [Limitations of Anacron](#limitations-of-anacron)
+- [Working with remote servers](#working-with-remote-servers)
 
 # Bash Basics  
 ## General structure of a script  
@@ -813,3 +826,173 @@ done
 ```  
 
 # Debugging scripts  
+## Shellcheck  
+[shellcheck on web](https://www.shellcheck.net/)  
+[For VSCode](https://github.com/vscode-shellcheck/vscode-shellcheck)  
+Use a shellcheck to identify errors for your scripts.  
+
+## Common errors  
+Syntax errors; can be prevented with shellcheck.  
+
+| Error                     | What it means                                                       | How to fix it                                                                       |
+| ------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| No Such File or Directory | The file or directory that you are trying to access does not exist. | 1) Check that you didn’t mistype the file path 2) Check that Word splitting has not |
+interfered with how a file path is being interpreted (did you wrap everything in double quotes?) 3) Check that the files/folders you want to work with actually exist.
+File Exists| You are trying to create a file/directory that already exists|Modify the script's logic to check whether the file you want to create already exists before you run the command to create it. e.g: `[ -e <my file/directory> ] || create it`
+Permission Denied| You do not have the required permissions to do what you are trying to do|Put the word sudo before the script name when you run it
+Operation Not Permitted|You are trying to do something on the system that regular users are not allowed to do|Put the word sudo before the script name when you run it
+Command not found|You are trying to run a program that the shell could not find on its path|1) Check for typo in the command name 2) Ensure that the program you are trying to run is on your system’s PATH 3) Ensure that the program you are trying to run has execution permissions 4) Install any required packages|  
+
+## Getting help  
+The `man`, `help` and `info` commands.  
+How to identify if a command is internal or external: `type -a <cmd>`  
+`type -a cd` - "cd is a shell builtin"  
+`type -a ls` - "ls is aliased to 'ls --color=auto' ls is /usr/bin/ls ls is /bin/ls"  
+
+Use the `help` command for internal commands.  
+Use the `man` or `info` commands for external.  
+
+Get the description of a command use `-d`: `help -d cd`  
+Get the usage info of a command use `-s`: `help -s cd`  
+
+Search all manpages with: `man -k <keyword>`
+You can search with multiple keywords when wrapped in double quotes.  
+With `man -K partition` you can search per page instead of a list with small k.  
+You can search any manpage by typing: `/<keyword>`. This will highlight the keywords in the manpage.  
+
+To get more info use the `info <cmd>`. This shows a page with more info and links to other sections.  
+
+# Scheduling and Automation  
+## The "at" command  
+Install with: `apt install at`  
+Check status with: `service atd status`  
+
+The atd-service runs in the background as a daemon service.  
+Example: `at 9:30am` run a script at 9:30am, this will open a prompt.  
+*Note: this will use /bin/sh by default not bash*  
+To end the prompt press Ctrl+D.  
+This will give a prompt `job <id> <datetime>` of when the script will run.  
+
+With `at -l` you will get a list of scheduled jobs.  
+Remove job with: `at -r <id>`.  
+
+Using `at` in a script:
+```Bash
+#!/bin/bash
+
+mkdir at_dir
+touch at_dir/file{1..100}.txt
+```
+Enable the file in `at` with: `at 10:00am -f <scriptname>`  
+
+`at 9am Monday -f <script>` the time MUST come before the day!  
+Other possible commands:  
+`at 9am 12/23/2023`  
+`at 9am 23.12.2023`  
+`at 9am tomorrow -f <script>`  
+`at 9am next week -f <script>`  
+With a timer:  
+`at now + 5 minutes`  
+`at now + 2 days`  
+
+### Limitations of at  
+- The `at` command will only execute job if your PC is on, thus suitable for servers  
+- No way to set up recurring jobs, `at` schedules for a one-time execute  
+
+## Using Cron to schedule  
+Each user has a crontab that contains the jobs that they want to run from their user account.  
+Check status with `service cron status`  
+Edit the crontab (cron table): `crontab -e`  
+With the `-e` command changes are immediatly picked up by cron (service restart).  
+When editing the crontab use spaces to seperate the columns. Crontab does not care for how much white space.  
+
+The crontab is build op with rows (a job) and 6 columns:  
+m = minutes  
+h = hour  
+dom = days of the month  
+mon = month  
+dow = days of the week  
+command = command or path to script  
+
+Shortcuts:  
+| Character | Example        | Meaning                                                                               |
+| --------- | -------------- | ------------------------------------------------------------------------------------- |
+| *         |                | A * means all possible entries                                                        |
+| ,         | 1,5,8          | Enter the values 1, 5 and 8 into the current column                                   |
+| -         | 1-8 or MON-WED | Enter the values 1 through 8 into column or enters the values MON,TUE,WED into column |
+
+Useful tool: https://crontab.guru/  
+
+Systemwide crontab: `sudo nano /etc/crontab`  
+This opens a crontab with a new column to specify as which user you want to run as.  
+Don't forget to restart the cron service: `sudo service cron restart`  
+
+### Limitations of cron  
+- The `cron` command will only execute job if your PC is on, thus suitable for servers  
+
+
+## Cron tips  
+**Tip 1:** If the day-of-month or day-of-week part starts with a *, they form an intersection.  
+Otherwise they form a union. * * 3 * 1 runs on the 3rd day of the month and on Monday (union),  
+whereas * * */2 * 1 runs on every second day of the month only if it's also a Monday (intersection).  
+The manpage is incorrect about this detail.  
+
+**Tip 2:** Run your servers including the cron process in UTC timezone.  
+
+**Tip 3:** Some cron implementations allow to specify years and seconds.  
+However, cron is not the best tool if you need to operate at those levels, which is also why crontab.guru doesn't support them.  
+
+**Tip 4:** Don't use @reboot because it has too many issues.  
+
+**Tip 5:** More difficult schedules can be realized by combining multiple cron expressions.  
+For example, if you need to run X every 90 minutes, create one crontab entry that runs X every 3 hours on the hour (0 */3 * * *),  
+and a second crontab entry that runs X every 3 hours with an offset (30 1/3 * * *).  
+
+**Tip 6:** Another alternative for complicated schedules is Mcron.  
+
+## Cron directories  
+Cron directories are folders on your system where you can place scripts to run at a particular frequency.  
+
+Preconfigured dirs:  
+- /etc/cron.hourly    Scripts in this folder will run once per hour  
+- /etc/cron.daily     Scripts in this folder will run once per day  
+- /etc/cron.weekly    Scripts in this folder will run once per week  
+- /etc/cron.monthly   Scripts in this folder will run once per month  
+  
+These files are configured in the `/etc/crontab`.  
+When you move script files into a crondirectory, remove the .sh extension.  
+
+Creating personalized crondirectories:  
+create a dir in your desired location named: e.g. `~/cron.daily.2am`  
+With `crontab -e` enter the new row: `0 2 * * * run-parts ~/cron.daily.2am --report`  
+Use the `run-parts` to make it run automatically in your useraccount.  
+
+## Anacron  
+The advantage of anacron is that it has the ability to monitor if a cron job has been run or not,  
+and if not, then run it when this lapse is discovered.  
+
+By default, there is only one anacrontab on a system by default.  
+Anacron’s crontab is located at /etc/anacrontab.  
+In the anacrontab you can set the shell variable to be /bin/bash.  
+
+
+Anacrontab:  
+| Column         | Meaning                                                                                                                     |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| period         | How many days between each time your command is run. E.g putting a “1” here would make the command run every day            |
+| delay          | The delay in minutes from when anacron starts to when this command is run                                                   |
+| job-identifier | The name given to the command in the anacron logs. The job identifier can contain any characters except blanks and slashes. |
+| command        | The command you want to run, or path to your script.                                                                        |
+
+Job-identifiers are saved in the `ls /var/spool/anacron` here it will check for the time it is last run succesfully.  
+If it is further away than the specified time, it will run the command.  
+
+### Limitations of Anacron  
+- Unlike cron, you cannot run anacron jobs any more frequently than daily.  
+- Anacron will only recover 1 missed job!  
+
+# Working with remote servers  
+Copy files to a remote server.  
+`scp <source> <target>`  
+`scp ~/script.sh root@<ip>:~/` - copy script from local pc to home dir of target.  
+The other way works just the same.  
